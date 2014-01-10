@@ -52,8 +52,8 @@ class Data implements \Iterator, \Countable, \ArrayAccess {
         }
 
         if (!isset($this->data[$offset])) {
-            $raw = $this->raw[$offset];
-            $data = $this->mapper->mapData($raw);
+            $raw = $this->mapper->mapStructure($this->raw);
+            $data = $this->mapper->mapData($raw[$offset]);
 //            if (is_array($data)) {
 //                $data = new Data(array_keys($raw), array_values($raw));
 //            }

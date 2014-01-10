@@ -17,4 +17,14 @@ class Mapper {
 
         return $data;
     }
+
+    public function mapStructure($data)
+    {
+        if(isset($data['row']))
+        {
+            return $data['row'];
+        }
+
+        return $data;
+    }
 } 

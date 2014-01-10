@@ -35,7 +35,7 @@ class Query {
 
     /**
      * @param array $objects
-     * @return $this
+     * @return \Witooh\Neo4j\Cypher\Query
      */
     public function match(array $objects)
     {
@@ -49,7 +49,7 @@ class Query {
      * @param string $varA
      * @param string $opr
      * @param string $varB
-     * @return string $this
+     * @return \Witooh\Neo4j\Cypher\Query
      */
     public function where($varA, $opr, $varB)
     {
@@ -62,7 +62,7 @@ class Query {
 
     /**
      * @param string $str
-     * @return $this
+     * @return \Witooh\Neo4j\Cypher\Query
      */
     public function with($str)
     {
@@ -72,7 +72,7 @@ class Query {
 
     /**
      * @param array $object
-     * @return $this
+     * @return \Witooh\Neo4j\Cypher\Query
      */
     public function set(array $objects)
     {
@@ -86,7 +86,7 @@ class Query {
      * @param string $varA
      * @param string $opr
      * @param string $varB
-     * @return string $this
+     * @return \Witooh\Neo4j\Cypher\Query
      */
     public function andWhere($varA, $opr, $varB){
         $str = " WHERE $varA $opr $varB ";
@@ -99,7 +99,7 @@ class Query {
      * @param string $varA
      * @param string $opr
      * @param string $varB
-     * @return string $this
+     * @return \Witooh\Neo4j\Cypher\Query
      */
     public function orWhere($varA, $opr, $varB){
         $str = " OR $varA $opr $varB ";
@@ -110,7 +110,7 @@ class Query {
 
     /**
      * @param array $objects
-     * @return $this
+     * @return \Witooh\Neo4j\Cypher\Query
      */
     public function get(array $objects){
         $str = " RETURN ";
@@ -121,7 +121,7 @@ class Query {
 
     /**
      * @param array $objects
-     * @return $this
+     * @return \Witooh\Neo4j\Cypher\Query
      */
     public function createUnique(array $objects)
     {
@@ -132,7 +132,7 @@ class Query {
 
     /**
      * @param array $objects
-     * @return $this
+     * @return \Witooh\Neo4j\Cypher\Query
      */
     public function delete(array $objects)
     {
@@ -143,7 +143,7 @@ class Query {
 
     /**
      * @param array $params
-     * @return $this
+     * @return \Witooh\Neo4j\Cypher\Query
      */
     public function params(array $params)
     {
@@ -152,7 +152,7 @@ class Query {
     }
 
     /**
-     * @return array
+     * @return \Witooh\Neo4j\Cypher\DataCollection
      */
     public function run()
     {
@@ -163,15 +163,16 @@ class Query {
             ],
             json_encode([
                 'query'=>$this->queryStr,
-                'params'=>$this->params,
+                'params'=>$this->getParams(),
             ])
         ,['exceptions'=>false])->send();
 
+        $data = $res->json();
+
         if($res->getStatusCode() == 200){
-            $data = $res->json();
             return new DataCollection($data['columns'], $data['data']);
         }else{
-            throw new Neo4jException($res->json()['message']);
+            throw new Neo4jException($data['message']);
         }
     }
 
@@ -193,7 +194,7 @@ class Query {
 
     /**
      * @param string $str
-     * @return $this
+     * @return \Witooh\Neo4j\Cypher\Query
      */
     public function raw($str)
     {
@@ -202,12 +203,20 @@ class Query {
     }
 
     /**
-     * @return $this
+     * @return \Witooh\Neo4j\Cypher\Query
      */
     public function makeQuery()
     {
         $this->queryStr = '';
         $this->params = [];
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getParams()
+    {
+        return empty($this->params) ? null : $this->params;
     }
 } 
