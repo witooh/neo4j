@@ -3,7 +3,7 @@ namespace Witooh\Neo4j\Index;
 
 class Index {
     /**
-     * @var \Witooh\Neo4j\Cypher\Query
+     * @var \Witooh\Neo4j\Cypher\Cypher
      */
     protected $cypher;
 
@@ -20,11 +20,11 @@ class Index {
     public function add($label, $property, $unique = false)
     {
         if($unique){
-            $this->cypher->makeQuery()
+            $this->cypher->query()
                 ->raw("CREATE CONSTRAINT ON (a:$label) ASSERT a.$property IS UNIQUE")
                 ->run();
         }else{
-            $this->cypher->makeQuery()
+            $this->cypher->query()
                 ->raw("CREATE INDEX ON :$label($property)")
                 ->run();
         }
@@ -38,11 +38,11 @@ class Index {
     public function drop($label, $property, $unique = false)
     {
         if($unique){
-            $this->cypher->makeQuery()
+            $this->cypher->query()
                 ->raw("DROP CONSTRAINT ON (a:$label) ASSERT a.$property IS UNIQUE")
                 ->run();
         }else{
-            $this->cypher->makeQuery()
+            $this->cypher->query()
                 ->raw("DROP INDEX ON :$label($property)")
                 ->run();
         }

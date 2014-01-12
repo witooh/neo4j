@@ -66,7 +66,7 @@ class Neo4jServiceProvider extends ServiceProvider
     public function registerIndex()
     {
         $this->app->singleton('neo4j.index', function($app){
-            return new Index($app['neo4j.cypher.query']);
+            return new Index($app['neo4j.cypher']);
         });
     }
 

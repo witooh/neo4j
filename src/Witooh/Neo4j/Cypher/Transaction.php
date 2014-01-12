@@ -40,6 +40,7 @@ class Transaction {
         if(count($data['errors']) == 0){
             return new DataCollection($data['results'][0]['columns'], $data['results'][0]['data']);
         }else{
+            $this->isClose = true;
             throw new Neo4jException($res->json()['errors'][0]['message']);
         }
     }
@@ -60,11 +61,13 @@ class Transaction {
         if(count($data['errors']) == 0){
             $result = [];
             foreach($data['results'] as $d){
+
                 $result[] = new DataCollection($d['columns'], $d['data']);
             }
 
             return $result;
         }else{
+            $this->isClose = true;
             throw new Neo4jException($data['errors'][0]['message']);
         }
     }
@@ -82,12 +85,14 @@ class Transaction {
 
     public function rollback()
     {
-        $res = $this->send('DELETE', "{$this->uri}/{$this->id}", null);
+        if(!$this->isClose){
+            $res = $this->send('DELETE', "{$this->uri}/{$this->id}", null);
 
-        if($res->getStatusCode() == 200){
-            $this->isClose = true;
-        }else{
-            throw new Neo4jException($res->json()['errors'][0]['message']);
+            if($res->getStatusCode() == 200){
+                $this->isClose = true;
+            }else{
+                throw new Neo4jException($res->json()['errors'][0]['message']);
+            }
         }
     }
 
@@ -105,10 +110,37 @@ class Transaction {
             $this->setId($data['commit']);
             $this->isClose = false;
         }else{
+            $this->isClose = true;
             throw new Neo4jException($data['errors'][0]['message']);
         }
 
         return $this;
+    }
+
+    public function beginAndCommit(array $querys)
+    {
+        $statements = [];
+        foreach($querys as $query){
+            $statements[] = ['statement'=>$query->toString(), 'parameters'=>$query->getParams()];
+        }
+
+        $res = $this->send('POST', "{$this->uri}", json_encode([
+                    'statements'=>$statements
+                ]));
+
+        $data = $res->json();
+
+        if(count($data['errors']) == 0){
+            $result = [];
+            foreach($data['results'] as $d){
+
+                $result[] = new DataCollection($d['columns'], $d['data']);
+            }
+
+            return $result;
+        }else{
+            throw new Neo4jException($data['errors'][0]['message']);
+        }
     }
 
     protected function setId($str)
@@ -129,6 +161,12 @@ class Transaction {
             [
                 'Accept'=>'application/json; charset=UTF-8',
                 'Content-Type'=>'application/json',
+                'X-Stream'=>'true',
             ], $data ,['exceptions'=>false])->send();
+    }
+
+    public function isClosed()
+    {
+        return $this->isClose;
     }
 } 

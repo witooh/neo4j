@@ -22,26 +22,29 @@ class Query {
     }
 
     /**
-     * @param array $objects
      * @return \Witooh\Neo4j\Cypher\Query
      */
-    public function create(array $objects)
+    public function create()
     {
-        $str = " CREATE ";
-
-        $this->queryStr .= $str . implode(',', $objects);
+        $this->createBlock("CREATE", func_get_args());
         return $this;
     }
 
     /**
-     * @param array $objects
      * @return \Witooh\Neo4j\Cypher\Query
      */
-    public function match(array $objects)
+    public function match()
     {
-        $str = " MATCH ";
+        $this->createBlock("MATCH", func_get_args());
+        return $this;
+    }
 
-        $this->queryStr .= $str . implode(',', $objects);
+    /**
+     * @return \Witooh\Neo4j\Cypher\Query
+     */
+    public function optMatch()
+    {
+        $this->createBlock("OPTIONAL MATCH", func_get_args());
         return $this;
     }
 
@@ -53,7 +56,7 @@ class Query {
      */
     public function where($varA, $opr, $varB)
     {
-        $str = "  AND $varA $opr $varB ";
+        $str = " WHERE $varA $opr $varB ";
 
         $this->queryStr .= $str;
         return $this;
@@ -61,24 +64,20 @@ class Query {
 
 
     /**
-     * @param string $str
      * @return \Witooh\Neo4j\Cypher\Query
      */
-    public function with($str)
+    public function with()
     {
-        $this->queryStr .= ' WITH ' . $str;
+        $this->createBlock("WITH", func_get_args());
         return $this;
     }
 
     /**
-     * @param array $object
      * @return \Witooh\Neo4j\Cypher\Query
      */
-    public function set(array $objects)
+    public function set()
     {
-        $str = " SET ";
-
-        $this->queryStr .= $str . implode(',', $objects);
+        $this->createBlock("SET", func_get_args());
         return $this;
     }
 
@@ -89,7 +88,7 @@ class Query {
      * @return \Witooh\Neo4j\Cypher\Query
      */
     public function andWhere($varA, $opr, $varB){
-        $str = " WHERE $varA $opr $varB ";
+        $str = " AND $varA $opr $varB ";
 
         $this->queryStr .= $str;
         return $this;
@@ -109,35 +108,28 @@ class Query {
     }
 
     /**
-     * @param array $objects
      * @return \Witooh\Neo4j\Cypher\Query
      */
-    public function get(array $objects){
-        $str = " RETURN ";
-
-        $this->queryStr .= $str . implode(',', $objects);
+    public function get(){
+        $this->createBlock("RETURN", func_get_args());
         return $this;
     }
 
     /**
-     * @param array $objects
      * @return \Witooh\Neo4j\Cypher\Query
      */
-    public function createUnique(array $objects)
+    public function createUnique()
     {
-        $str = " CREATE UNIQUE ";
-        $this->queryStr .= $str . implode(',', $objects);
+        $this->createBlock("CREATE UNIQUE", func_get_args());
         return $this;
     }
 
     /**
-     * @param array $objects
      * @return \Witooh\Neo4j\Cypher\Query
      */
-    public function delete(array $objects)
+    public function delete()
     {
-        $str = " DELETE ";
-        $this->queryStr .= $str . implode(',', $objects);
+        $this->createBlock("DELETE", func_get_args());
         return $this;
     }
 
@@ -160,6 +152,7 @@ class Query {
             [
                 'Accept'=>'application/json; charset=UTF-8',
                 'Content-Type'=>'application/json',
+                'X-Stream'=>'true',
             ],
             json_encode([
                 'query'=>$this->queryStr,
@@ -176,15 +169,14 @@ class Query {
         }
     }
 
-    protected function isParam($str)
+    protected function createBlock($grammar, array $arg)
     {
-        return preg_match('/{[a-zA-Z]+[a-zA-Z0-9_]*}/', $str);
-    }
-
-    protected function jsonEncode($str)
-    {
-        $jsonVal = json_encode($str);
-        return preg_replace('/"([a-zA-Z]+[a-zA-Z0-9_]*)":/','$1:',$jsonVal);
+        $str = " $grammar ";
+        if(is_array($arg[0])){
+            $this->queryStr .= $str . implode(',', $arg[0]);
+        }else{
+            $this->queryStr .= $str . implode(',', $arg);
+        }
     }
 
     public function toString()
@@ -199,16 +191,6 @@ class Query {
     public function raw($str)
     {
         $this->queryStr = $str;
-        return $this;
-    }
-
-    /**
-     * @return \Witooh\Neo4j\Cypher\Query
-     */
-    public function makeQuery()
-    {
-        $this->queryStr = '';
-        $this->params = [];
         return $this;
     }
 

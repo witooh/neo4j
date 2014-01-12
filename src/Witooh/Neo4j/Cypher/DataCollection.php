@@ -1,7 +1,9 @@
 <?php
 namespace Witooh\Neo4j\Cypher;
 
-class DataCollection implements \Iterator, \Countable, \ArrayAccess {
+use Illuminate\Support\Contracts\ArrayableInterface;
+
+class DataCollection implements \Iterator, \Countable, \ArrayAccess, ArrayableInterface {
     /**
      * @var array
      */
@@ -14,13 +16,16 @@ class DataCollection implements \Iterator, \Countable, \ArrayAccess {
      * @var int
      */
     protected $pos = 0;
+    /**
+     * @var array
+     */
+    protected $rows;
 
     public function __construct(array $columns, array $data)
     {
         $this->data = $data;
         $this->columns = $columns;
         $this->rows = [];
-        $this->columnName = null;
     }
 
     /**
@@ -79,8 +84,6 @@ class DataCollection implements \Iterator, \Countable, \ArrayAccess {
         return $this->rows[$offset];
     }
 
-
-
     /**
      * @param mixed $offset
      * @param mixed $value
@@ -108,5 +111,16 @@ class DataCollection implements \Iterator, \Countable, \ArrayAccess {
         return count($this->data);
     }
 
+    public function toArray(){
+        $result = [];
+        foreach($this as $data){
+            if($data instanceof ArrayableInterface){
+                $result[] = $data->toArray();
+            }else{
+                $result[] = $data;
+            }
+        }
 
+        return $result;
+    }
 } 

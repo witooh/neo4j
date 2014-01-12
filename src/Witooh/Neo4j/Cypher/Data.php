@@ -2,8 +2,9 @@
 namespace Witooh\Neo4j\Cypher;
 
 use App;
+use Illuminate\Support\Contracts\ArrayableInterface;
 
-class Data implements \Iterator, \Countable, \ArrayAccess {
+class Data implements \Iterator, \Countable, \ArrayAccess, ArrayableInterface {
 
     protected $client = null;
     protected $raw = null;
@@ -31,6 +32,7 @@ class Data implements \Iterator, \Countable, \ArrayAccess {
 
     public function offsetExists($offset)
     {
+        $raw = $this->mapper->mapStructure($this->raw);
         if (!is_integer($offset)) {
 
             $rawOffset = array_search($offset, $this->columns);
@@ -39,10 +41,10 @@ class Data implements \Iterator, \Countable, \ArrayAccess {
                 return false;
             }
 
-            return isset($this->raw[$rawOffset]);
+            return isset($raw[$rawOffset]);
         }
 
-        return isset($this->raw[$offset]);
+        return isset($raw[$offset]);
     }
 
     public function offsetGet($offset)
@@ -107,5 +109,19 @@ class Data implements \Iterator, \Countable, \ArrayAccess {
     public function valid()
     {
         return $this->position < count($this->raw);
+    }
+
+    public function toArray()
+    {
+        $result = [];
+        foreach($this as $key=>$data){
+            if($data instanceof ArrayableInterface){
+                $result[$key] = $data->toArray();
+            }else{
+                $result[$key] = $data;
+            }
+        }
+
+        return $result;
     }
 }

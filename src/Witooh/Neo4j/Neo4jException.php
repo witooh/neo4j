@@ -10,6 +10,6 @@ class Neo4jException extends \Exception {
      */
     public function __construct($messages)
     {
-        parent::__construct($messages, 501);
+        parent::__construct($messages, 599);
     }
 } 
