@@ -144,6 +144,47 @@ class Query {
     }
 
     /**
+     * @param string $key
+     * @param mixed $value
+     * @return \Witooh\Neo4j\Cypher\Query
+     */
+    public function addParam($key, $value)
+    {
+        $this->params[$key] = $value;
+        return $this;
+    }
+
+    /**
+     * (a) - [r] -> (b)
+     *
+     * @param string $relationName
+     * @param array|null $relationProps
+     * @param string $fromLabel
+     * @param string $fromId
+     * @param string $toLabel
+     * @param string $toId
+     * @param array|null $return
+     * @return \Witooh\Neo4j\Cypher\Query
+     */
+    public function addRelationById($relationName, $relationProps, $fromLabel, $fromId, $toLabel, $toId, $return = null)
+    {
+        $this->match("(a:$fromLabel {id:{aid}})", "(b:$toLabel {id:{bid}})");
+        if(empty($relationProps)){
+            $this->createUnique("(a) - [r:$relationName] -> (b)");
+        }else{
+            $this->createUnique("(a) - [r:$relationName {relprops}] -> (b)");
+        }
+        if(empty($return)){
+            $this->get(["count(a) as ca", "count(b) as cb", "a.id", "b.id"]);
+        }else{
+            $this->get($return);
+        }
+        $this->params(['aid'=>$fromId, 'bid'=>$toId, 'relprops'=>$relationProps]);
+
+        return $this;
+    }
+
+    /**
      * @return \Witooh\Neo4j\Cypher\DataCollection
      */
     public function run()
