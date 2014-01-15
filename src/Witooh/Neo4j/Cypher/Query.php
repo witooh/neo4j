@@ -62,6 +62,22 @@ class Query {
         return $this;
     }
 
+    /**
+     * @param bool $condition
+     * @param string $varA
+     * @param string $opr
+     * @param string $varB
+     * @return \Witooh\Neo4j\Cypher\Query
+     */
+    public function whereIf($condition, $varA, $opr, $varB)
+    {
+        if($condition){
+            $this->where($varA, $opr, $varB);
+        }
+
+        return $this;
+    }
+
 
     /**
      * @return \Witooh\Neo4j\Cypher\Query
@@ -116,11 +132,51 @@ class Query {
     }
 
     /**
+     * @return $this
+     */
+    public function copy()
+    {
+        $q = clone $this;
+        return $q;
+    }
+
+    /**
      * @return \Witooh\Neo4j\Cypher\Query
      */
     public function createUnique()
     {
         $this->createBlock("CREATE UNIQUE", func_get_args());
+        return $this;
+    }
+
+    /**
+     * @param string $field
+     * @param string $order
+     * @return \Witooh\Neo4j\Cypher\Query
+     */
+    public function orderBy($field, $order = 'asc')
+    {
+        $this->queryStr .= " ORDER BY $field $order";
+        return $this;
+    }
+
+    /**
+     * @param int $limit
+     * @return \Witooh\Neo4j\Cypher\Query
+     */
+    public function limit($limit)
+    {
+        $this->queryStr .= " LIMIT $limit";
+        return $this;
+    }
+
+    /**
+     * @param int $offset
+     * @return \Witooh\Neo4j\Cypher\Query
+     */
+    public function skip($offset)
+    {
+        $this->queryStr .= " SKIP $offset";
         return $this;
     }
 

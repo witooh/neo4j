@@ -124,4 +124,28 @@ class Data implements \Iterator, \Countable, \ArrayAccess, ArrayableInterface {
 
         return $result;
     }
+
+    /**
+     * @param string|int $key
+     * @param null|mixed $default
+     * @return mixed
+     */
+    public function get($key, $default = null)
+    {
+        if($this->offsetExists($key)){
+            return $this->offsetGet($key);
+        }
+
+        return $default;
+    }
+
+    public function put($key, $value)
+    {
+        $this->data[$key] = $value;
+    }
+
+    public function push($value)
+    {
+        $this->data[] = $value;
+    }
 }
