@@ -148,6 +148,7 @@ class Query {
         }
         else{
             $str = " WHERE $varA $opr $varB ";
+            $this->hasWhere = true;
         }
 
         $this->queryStr .= $str;
@@ -165,8 +166,8 @@ class Query {
             $str = " OR $varA $opr $varB ";
         }else{
             $str = " WHERE $varA $opr $varB ";
+            $this->hasWhere = true;
         }
-
 
         $this->queryStr .= $str;
         return $this;
