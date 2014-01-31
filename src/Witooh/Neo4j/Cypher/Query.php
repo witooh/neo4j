@@ -16,9 +16,15 @@ class Query {
      */
     protected $curl;
 
+    /**
+     * @var bool
+     */
+    protected $hasWhere;
+
     public function __construct($curl)
     {
         $this->curl = $curl;
+        $this->hasWhere = false;
     }
 
     /**
@@ -59,6 +65,7 @@ class Query {
         $str = " WHERE $varA $opr $varB ";
 
         $this->queryStr .= $str;
+        $this->hasWhere = true;
         return $this;
     }
 
@@ -73,6 +80,38 @@ class Query {
     {
         if($condition){
             $this->where($varA, $opr, $varB);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param bool $condition
+     * @param string $varA
+     * @param string $opr
+     * @param string $varB
+     * @return \Witooh\Neo4j\Cypher\Query
+     */
+    public function andWhereIf($condition, $varA, $opr, $varB)
+    {
+        if($condition){
+            $this->andWhere($varA, $opr, $varB);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param bool $condition
+     * @param string $varA
+     * @param string $opr
+     * @param string $varB
+     * @return \Witooh\Neo4j\Cypher\Query
+     */
+    public function orWhereIf($condition, $varA, $opr, $varB)
+    {
+        if($condition){
+            $this->orWhere($varA, $opr, $varB);
         }
 
         return $this;
@@ -104,7 +143,12 @@ class Query {
      * @return \Witooh\Neo4j\Cypher\Query
      */
     public function andWhere($varA, $opr, $varB){
-        $str = " AND $varA $opr $varB ";
+        if($this->hasWhere){
+            $str = " AND $varA $opr $varB ";
+        }
+        else{
+            $str = " WHERE $varA $opr $varB ";
+        }
 
         $this->queryStr .= $str;
         return $this;
@@ -117,7 +161,12 @@ class Query {
      * @return \Witooh\Neo4j\Cypher\Query
      */
     public function orWhere($varA, $opr, $varB){
-        $str = " OR $varA $opr $varB ";
+        if($this->hasWhere){
+            $str = " OR $varA $opr $varB ";
+        }else{
+            $str = " WHERE $varA $opr $varB ";
+        }
+
 
         $this->queryStr .= $str;
         return $this;
@@ -156,7 +205,24 @@ class Query {
      */
     public function orderBy($field, $order = 'asc')
     {
-        $this->queryStr .= " ORDER BY $field $order";
+        $order = strtolower($order);
+        if($order == 'asc' || $order == 'desc') $this->queryStr .= " ORDER BY $field $order";
+        return $this;
+    }
+
+    /**
+     * @param int $skip
+     * @param int $limit
+     * @param string $fieldOrder
+     * @param string $order
+     * @return \Witooh\Neo4j\Cypher\Query
+     */
+    public function paginate($skip, $limit, $fieldOrder, $order = 'asc')
+    {
+        $this->orderBy($fieldOrder, $order);
+        $this->skip($skip);
+        $this->limit($limit);
+
         return $this;
     }
 
@@ -166,7 +232,7 @@ class Query {
      */
     public function limit($limit)
     {
-        $this->queryStr .= " LIMIT $limit";
+        if($limit > 0) $this->queryStr .= " LIMIT $limit";
         return $this;
     }
 
@@ -176,7 +242,7 @@ class Query {
      */
     public function skip($offset)
     {
-        $this->queryStr .= " SKIP $offset";
+        if($offset > 0) $this->queryStr .= " SKIP $offset";
         return $this;
     }
 
