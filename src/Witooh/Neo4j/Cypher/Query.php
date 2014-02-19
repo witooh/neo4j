@@ -123,7 +123,7 @@ class Query {
      */
     public function with()
     {
-        $this->createBlock("WITH", func_get_args());
+        $this->createBlock(" WITH ", func_get_args());
         return $this;
     }
 
@@ -364,5 +364,16 @@ class Query {
     public function getParams()
     {
         return empty($this->params) ? null : $this->params;
+    }
+
+    /**
+     * @param string $var
+     * @param string $list
+     * @param string $query
+     * @return $this
+     */
+    public function each($var, $list, $query){
+        $this->queryStr .= " FOREACH ({$var} IN {$list} | {$query}) ";
+        return $this;
     }
 } 
